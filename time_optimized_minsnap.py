@@ -8,7 +8,7 @@ class min_snap:
     def __init__(self,velocity, max_velocity,  parameters):
         self.num_points = len(parameters) 
         self.k = self.num_points - 1
-        self.n = 7 # order of the polynomial
+        self.n = 7 
         self.get_points(parameters)
         self.velocity = velocity
         self.parameters = parameters
@@ -17,8 +17,7 @@ class min_snap:
         self.q = np.zeros(((self.n+1) * self.k, 1)).reshape(((self.n+1)*self.k,))
         self.G = np.zeros((4 * self.k + 2, (self.n+1) * self.k))
         self.h = np.zeros((4 * self.k + 2, 1)).reshape((4 * self.k + 2, ))
-
-        self.max_velocity = max_velocity # to define the fastest the drone can go.
+        self.max_velocity = max_velocity 
         self.minimum_time_stamps = self.get_time_stamps(self.max_velocity) 
         self.t_segments = self.get_time_segments(self.time_stamps)
         self.minimum_time_segments = self.get_time_segments(self.minimum_time_stamps)
@@ -38,7 +37,7 @@ class min_snap:
         self.z = z
     
     def get_time_stamps(self, velocity):
-        t = [0.1] # not 0.0 because 0.0 to the power zero is not defined
+        t = [0.1] 
         parameters = self.parameters
         for i in range(self.k):
             current_point = np.array(parameters[i])
@@ -101,7 +100,7 @@ class min_snap:
                     A[k + 6 + 3 * i][(n+1)*i + l] = l*t[i + 1]**(l-1)
                     A[k + 7 + 3 * i][(n+1)*i + l] = l*(l-1)*t[i + 1]**(l-2)
                 else:
-                    A[k + 5 + 3 * i][(n+1)*i + l] = -t[i + 1]**(l-(n+1)) # now l iterates from n+1 so subtracting the offset
+                    A[k + 5 + 3 * i][(n+1)*i + l] = -t[i + 1]**(l-(n+1)) 
                     A[k + 6 + 3 * i][(n+1)*i + l] = -(l-(n+1))*t[i + 1]**((l-(n+1))-1)
                     A[k + 7 + 3 * i][(n+1)*i + l] = -(l-(n+1))*((l-(n+1))-1)*t[i + 1] ** ((l-(n+1))-2)
         self.A = A
@@ -123,9 +122,8 @@ class min_snap:
         self.p_y = solve_qp(self.Q,self.q,self.G,self.h,self.A,self.b_y)
         self.p_z = solve_qp(self.Q,self.q,self.G,self.h,self.A,self.b_z)
 
- ########################### OPTIMIZATION PART#####################################   
     def optimize(self): 
-        self.optimized_time_segments = self.gradient_descent()
+        self.gradient_descent()
 
     def get_cost_function(self, k_T = 10000000):
         self.get_Q()
@@ -133,8 +131,8 @@ class min_snap:
         t_seg = np.copy(self.t_segments) 
         t = [0.1]
         for i in range (len(t_seg)):
-            t.append(t[-1] + t_seg[i]) # using time segments to compute the time stamps array whenever the cost function is called.
-        self.time_stamps = np.copy(t)  # setting the self.time_stamps variable to the time stamps array
+            t.append(t[-1] + t_seg[i]) 
+        self.time_stamps = np.copy(t)  
         self.solve()
         p_x, p_y, p_z = self.p_x, self.p_y, self.p_z
         Q = self.Q
@@ -150,19 +148,18 @@ class min_snap:
     def get_gradient(self):
         t_test_segments = np.copy(self.t_segments)
         t_segments_initial = np.copy(self.t_segments)
-        gradient = np.zeros(len(self.t_segments)) # gradient for each segment.
+        gradient = np.zeros(len(self.t_segments)) 
         h = 0.0001
         J_prev = self.get_cost_function()
         for i in range (len(self.t_segments)):
-            if (t_test_segments[i] < self.minimum_time_segments[i]): # the time_segments should always be greater than equal to the minimum time_segments, which means there is not further decrement once the time_segments are lesser than the minimum_time_segments.
+            if (t_test_segments[i] < self.minimum_time_segments[i]): 
                 gradient[i] = 0 
             else :
-                t_test_segments[i] = t_test_segments[i] + h # incrementing ith segment at one time
-                self.t_segments = np.copy(t_test_segments) # changing the time_segments for cost function computation
-                J_curr = self.get_cost_function() # getting the new cost function
-                # print ("J_curr:",J_curr)
-                gradient[i] = (J_curr - J_prev)/h # computing the gradient for the new cost function
-                t_test_segments[i] = t_test_segments[i] - h # reverting the origianl test array so each segment can be individually incremented
+                t_test_segments[i] = t_test_segments[i] + h 
+                self.t_segments = np.copy(t_test_segments) 
+                J_curr = self.get_cost_function() 
+                gradient[i] = (J_curr - J_prev)/h 
+                t_test_segments[i] = t_test_segments[i] - h 
         self.t_segments = np.copy(t_segments_initial)
         return gradient
     
@@ -183,7 +180,7 @@ class min_snap:
             difference = abs(current_cost - prev_cost)
             iterator = iterator + 1
 
-        print ("Number of iterations:", iterator)
+        print ("Number of iterations of gradient descent:", iterator)
         print ("Total time after time scaling: ", self.time_stamps[-1] - self.time_stamps[0])
 
     

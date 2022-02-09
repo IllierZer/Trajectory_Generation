@@ -8,7 +8,7 @@ class min_snap:
     def __init__(self,velocity, parameters):
         self.num_points = len(parameters) 
         self.k = self.num_points - 1
-        self.n = 7 # order of the polynomial
+        self.n = 7 
         self.get_points(parameters)
         self.velocity = velocity
         self.parameters = parameters
@@ -33,7 +33,7 @@ class min_snap:
         self.z = z
     
     def get_time_stamps(self):
-        t = [0.1] # not 0.0 because 0.0 to the power zero is not defined
+        t = [0.1]
         parameters = self.parameters
         for i in range(self.k):
             current_point = np.array(parameters[i])
@@ -89,7 +89,7 @@ class min_snap:
                     A[k + 6 + 3 * i][(n+1)*i + l] = l*t[i + 1]**(l-1)
                     A[k + 7 + 3 * i][(n+1)*i + l] = l*(l-1)*t[i + 1]**(l-2)
                 else:
-                    A[k + 5 + 3 * i][(n+1)*i + l] = -t[i + 1]**(l-(n+1)) # now l iterates from n+1 so subtracting the offset
+                    A[k + 5 + 3 * i][(n+1)*i + l] = -t[i + 1]**(l-(n+1)) 
                     A[k + 6 + 3 * i][(n+1)*i + l] = -(l-(n+1))*t[i + 1]**((l-(n+1))-1)
                     A[k + 7 + 3 * i][(n+1)*i + l] = -(l-(n+1))*((l-(n+1))-1)*t[i + 1] ** ((l-(n+1))-2)
         return A
